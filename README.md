@@ -27,16 +27,16 @@ Just import add the library to your project with one of these options:
     <dependency>
         <groupId>org.telegram</groupId>
         <artifactId>telegrambots</artifactId>
-        <version>4.4.0</version>
+        <version>4.6</version>
     </dependency>
 ```
 
 ```gradle
-    compile "org.telegram:telegrambots:4.4.0"
+    compile "org.telegram:telegrambots:4.6"
 ```
 
-  2. Using Jitpack from [here](https://jitpack.io/#rubenlagus/TelegramBots/4.4.0)
-  3. Download the jar(including all dependencies) from [here](https://mvnrepository.com/artifact/org.telegram/telegrambots/4.4.0)
+  2. Using Jitpack from [here](https://jitpack.io/#rubenlagus/TelegramBots/4.6)
+  3. Download the jar(including all dependencies) from [here](https://mvnrepository.com/artifact/org.telegram/telegrambots/4.6)
 
 In order to use Long Polling mode, just create your own bot extending `org.telegram.telegrambots.bots.TelegramLongPollingBot`.
 
@@ -95,7 +95,7 @@ Feel free to create issues [here](https://github.com/rubenlagus/TelegramBots/iss
 
 ## Powered by Intellij
 <p align="center">
-   <a href="https://www.jetbrains.com"><img src="jetbrains.png" width="75"></a>
+   <a href="https://www.jetbrains.com/?from=TelegramBots"><img src="jetbrains.png" width="75"></a>
 </p>
 
 
