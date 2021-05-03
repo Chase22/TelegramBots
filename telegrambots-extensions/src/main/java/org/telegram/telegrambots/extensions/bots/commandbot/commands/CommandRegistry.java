@@ -7,7 +7,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -19,17 +21,17 @@ public final class CommandRegistry implements ICommandRegistry {
 
     private final Map<String, IBotCommand> commandRegistryMap = new HashMap<>();
     private final boolean allowCommandsWithUsername;
-    private final String botUsername;
+    private final Supplier<String> botUsernameSupplier;
     private BiConsumer<AbsSender, Message> defaultConsumer;
 
     /**
      * Creates a Command registry
      * @param allowCommandsWithUsername True to allow commands with username, false otherwise
-     * @param botUsername Bot username
+     * @param botUsernameSupplier       Bot username supplier
      */
-    public CommandRegistry(boolean allowCommandsWithUsername, String botUsername) {
+    public CommandRegistry(boolean allowCommandsWithUsername, Supplier<String> botUsernameSupplier) {
         this.allowCommandsWithUsername = allowCommandsWithUsername;
-        this.botUsername = botUsername;
+        this.botUsernameSupplier = botUsernameSupplier;
     }
 
     @Override
@@ -86,7 +88,7 @@ public final class CommandRegistry implements ICommandRegistry {
     /**
      * Executes a command action if the command is registered.
      *
-     * @note If the command is not registered and there is a default consumer,
+     * @apiNote  If the command is not registered and there is a default consumer,
      * that action will be performed
      *
      * @param absSender absSender
@@ -120,9 +122,12 @@ public final class CommandRegistry implements ICommandRegistry {
      * the command
      * @param command Command to simplify
      * @return Simplified command
+     * @throws java.lang.NullPointerException if {@code allowCommandsWithUsername} is {@code true}
+     *                                        and {@code botUsernameSupplier} returns {@code null}
      */
     private String removeUsernameFromCommandIfNeeded(String command) {
         if (allowCommandsWithUsername) {
+            String botUsername = Objects.requireNonNull(botUsernameSupplier.get(), "Bot username must not be null");
             return command.replaceAll("(?i)@" + Pattern.quote(botUsername), "").trim();
         }
         return command;

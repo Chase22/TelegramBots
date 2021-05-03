@@ -1,7 +1,6 @@
 package org.telegram.telegrambots.extensions.bots.commandbot;
 
 
-import org.telegram.telegrambots.meta.ApiContext;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -22,7 +21,6 @@ import java.util.function.BiConsumer;
  */
 public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingBot implements ICommandRegistry {
     private final CommandRegistry commandRegistry;
-    private String botUsername;
 
     /**
      * Creates a TelegramLongPollingCommandBot using default options
@@ -30,20 +28,7 @@ public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingB
      *
      */
     public TelegramLongPollingCommandBot() {
-        this(ApiContext.getInstance(DefaultBotOptions.class));
-    }
-
-    /**
-     * Creates a TelegramLongPollingCommandBot using default options
-     * Use ICommandRegistry's methods on this bot to register commands
-     *
-     * @param botUsername Username of the bot
-     * @deprecated Overwrite {@link #getBotUsername() getBotUsername} instead
-     */
-    @Deprecated
-    public TelegramLongPollingCommandBot(String botUsername){
-        this();
-        this.botUsername = botUsername;
+        this(new DefaultBotOptions());
     }
 
     /**
@@ -67,7 +52,7 @@ public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingB
      */
     public TelegramLongPollingCommandBot(DefaultBotOptions options, boolean allowCommandsWithUsername) {
         super(options);
-        this.commandRegistry = new CommandRegistry(allowCommandsWithUsername, this.getBotUsername());
+        this.commandRegistry = new CommandRegistry(allowCommandsWithUsername, this::getBotUsername);
     }
 
     @Override
@@ -152,9 +137,7 @@ public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingB
      * @return Bot username
      */
     @Override
-    public String getBotUsername(){
-        return this.botUsername;
-    };
+    public abstract String getBotUsername();
 
     /**
      * Process all updates, that are not commands.

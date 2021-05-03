@@ -4,10 +4,12 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.telegram.abilitybots.api.bot.BaseAbilityBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -17,7 +19,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 import static java.util.Objects.hash;
 import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.telegram.abilitybots.api.util.AbilityUtils.isValidCommandName;
 
 /**
  * An ability is a fully-fledged bot action that contains all the necessary information to process:
@@ -42,16 +44,16 @@ public final class Ability {
   private final Locality locality;
   private final Privacy privacy;
   private final int argNum;
+  private final boolean statsEnabled;
   private final Consumer<MessageContext> action;
   private final Consumer<MessageContext> postAction;
   private final List<Reply> replies;
   private final List<Predicate<Update>> flags;
 
   @SafeVarargs
-  private Ability(String name, String info, Locality locality, Privacy privacy, int argNum, Consumer<MessageContext> action, Consumer<MessageContext> postAction, List<Reply> replies, Predicate<Update>... flags) {
-    checkArgument(!isEmpty(name), "Method name cannot be empty");
-    checkArgument(!containsWhitespace(name), "Method name cannot contain spaces");
-    checkArgument(isAlphanumeric(name), "Method name can only be alpha-numeric", name);
+  private Ability(String name, String info, Locality locality, Privacy privacy, int argNum, boolean statsEnabled, Consumer<MessageContext> action, Consumer<MessageContext> postAction, List<Reply> replies, Predicate<Update>... flags) {
+    checkArgument(isValidCommandName(name), "Method name can only contain alpha-numeric characters and underscores," +
+            " cannot be longer than 31 characters, empty or null", name);
     this.name = name;
     this.info = info;
 
@@ -70,6 +72,7 @@ public final class Ability {
 
     this.postAction = postAction;
     this.replies = replies;
+    this.statsEnabled = statsEnabled;
   }
 
   public static AbilityBuilder builder() {
@@ -94,6 +97,10 @@ public final class Ability {
 
   public int tokens() {
     return argNum;
+  }
+
+  public boolean statsEnabled() {
+    return statsEnabled;
   }
 
   public Consumer<MessageContext> action() {
@@ -147,12 +154,14 @@ public final class Ability {
     private Privacy privacy;
     private Locality locality;
     private int argNum;
+    private boolean statsEnabled;
     private Consumer<MessageContext> action;
     private Consumer<MessageContext> postAction;
     private List<Reply> replies;
     private Predicate<Update>[] flags;
 
     private AbilityBuilder() {
+      statsEnabled = false;
       replies = newArrayList();
     }
 
@@ -186,6 +195,16 @@ public final class Ability {
       return this;
     }
 
+    public AbilityBuilder enableStats() {
+      statsEnabled = true;
+      return this;
+    }
+
+    public AbilityBuilder setStatsEnabled(boolean statsEnabled) {
+      this.statsEnabled = statsEnabled;
+      return this;
+    }
+
     public AbilityBuilder privacy(Privacy privacy) {
       this.privacy = privacy;
       return this;
@@ -196,9 +215,24 @@ public final class Ability {
       return this;
     }
 
+    /**
+     * @deprecated Please use {@link #reply(BiConsumer, Predicate[])}
+     */
+    @Deprecated
     @SafeVarargs
     public final AbilityBuilder reply(Consumer<Update> action, Predicate<Update>... conditions) {
       replies.add(Reply.of(action, conditions));
+      return this;
+    }
+
+    @SafeVarargs
+    public final AbilityBuilder reply(BiConsumer<BaseAbilityBot, Update> action, Predicate<Update>... conditions) {
+      replies.add(Reply.of(action, conditions));
+      return this;
+    }
+
+    public final AbilityBuilder reply(Reply reply) {
+      replies.add(reply);
       return this;
     }
 
@@ -216,7 +250,7 @@ public final class Ability {
     }
 
     public Ability build() {
-      return new Ability(name, info, locality, privacy, argNum, action, postAction, replies, flags);
+      return new Ability(name, info, locality, privacy, argNum, statsEnabled, action, postAction, replies, flags);
     }
   }
 }

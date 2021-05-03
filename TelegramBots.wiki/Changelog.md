@@ -1,3 +1,64 @@
+### <a id="5.2.0"></a>5.2.0 ###
+1. Update Api version [5.2](https://core.telegram.org/bots/api#april-26-2021)
+2. Allow custom BackOff implementations
+3. Spring version 2.4.5 in spring module
+4. Bug fixing: #869, #888 and #892
+
+### <a id="5.1.1"></a>5.1.1 ###
+1.  Bug fixing: #874
+
+### <a id="5.1.0"></a>5.1.0 ###
+1. Update Api version [5.1](https://core.telegram.org/bots/api-changelog#march-9-2021)
+2. Bug fixing: #832, #841, #844, #851, #857
+3. Update Spring boot version 2.4.3
+4. Update Gradle docs
+5. Added CommandMessage to extensions
+6. Abilities: Inject bot instance to reply update consumer support for multiple reply declarations.
+
+**[[How to update to version 5.1.0|How-To-Update#5.1.0]]**
+
+### <a id="5.0.1"></a>5.0.1 ###
+1. Fixing couple of bugs from 5.0.0
+2. Bug fixing: #794 
+3. Docs updated to reflect usage for version 5.0.0
+4. EditMessageText setChatIId(Long) is removed to keep consistency 
+
+### <a id="5.0.0"></a>5.0.0 ###
+1. Update Api version [5.0](https://core.telegram.org/bots/api-changelog#november-4-2020)
+2. Added Builders for many of the API methods and objects (hopefully all of them unless I missed something)
+3. Some setters/getters may have change name. They no longer return a reference to itself, use Builder for that.
+4. Simplified methods to set files in methods. Only InputFile is available now (this class contains constructors for all the cases)  
+5. Locations now use Double instead of Float to avoid rounding.
+6. When using a TelegramApi for webhook usage, a Webhook instance has to be provided in constructor (i.e. DefaultWebhook class)
+6. When registering a Webhook Bot, a SetWebhook object must be provided.
+7. When using Webhook with Spring, extends class SpringWebhookBot instead of WebhookBot 
+8. New Async methods returning CompletableFutures (yes, we still have the existing callback methods)
+9. Added new Async methods for missing cases returning CompletableFutures. Like for sendAudio or sendVideo.
+10. No more Guice to define custom class
+11. Bug fixes: #795
+
+**[[How to update to version 5.0.0|How-To-Update#5.0.0]]**
+
+### <a id="4.9.2"></a>4.9.2 ###
+1. Bug fixing: #792, #801, #804, #810, #812, #813, #820 and #814
+
+### <a id="4.9.1"></a>4.9.1 ###
+1. Bug fixing: #767, #766, #761, #763, #776, #772, #771, #780
+
+### <a id="4.9"></a>4.9 ###
+1. Update Api version [4.9](https://core.telegram.org/bots/api-changelog#june-4-2020)
+2. Bug fixing: #731, #749, #752 and #753
+
+### <a id="4.8.1"></a>4.8.1 ###
+1. Update Api version [4.8](https://core.telegram.org/bots/api-changelog#april-24-2020)
+2. Add stats for Abilities
+3. New and updated wiki page
+4. Spring-boot support for version 2.2.2 
+5. Bug fixing: #745, #716, #629, #749, #730
+
+### <a id="4.7"></a>4.7 ###
+1. Update Api version [4.7](https://core.telegram.org/bots/api-changelog#march-30-2020)
+
 ### <a id="4.6"></a>4.6 ###
 1. Update Api version [4.6](https://core.telegram.org/bots/api-changelog#january-23-2020)
 

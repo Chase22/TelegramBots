@@ -3,9 +3,24 @@ package org.telegram.telegrambots.meta.api.objects.inlinequery.result;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.Singular;
+import lombok.ToString;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.inputmessagecontent.InputMessageContent;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Ruben Bermudez
@@ -15,32 +30,48 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
  * message with the specified content instead of the animation.
  */
 @JsonDeserialize
+@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class InlineQueryResultGif implements InlineQueryResult {
+    private static final List<String> VALIDTHUMBTYPES = Collections.unmodifiableList(Arrays.asList("image/jpeg", "image/gif", "video/mp4"));
+
     private static final String TYPE_FIELD = "type";
     private static final String ID_FIELD = "id";
     private static final String GIFURL_FIELD = "gif_url";
     private static final String GIFWIDTH_FIELD = "gif_width";
     private static final String GIFHEIGHT_FIELD = "gif_height";
     private static final String THUMBURL_FIELD = "thumb_url";
+    private static final String THUMBMIMETYPE_FIELD = "thumb_mime_type";
     private static final String TITLE_FIELD = "title";
     private static final String CAPTION_FIELD = "caption";
     private static final String INPUTMESSAGECONTENT_FIELD = "input_message_content";
     private static final String REPLY_MARKUP_FIELD = "reply_markup";
     private static final String GIF_DURATION_FIELD = "gif_duration";
     private static final String PARSEMODE_FIELD = "parse_mode";
+    private static final String CAPTION_ENTITIES_FIELD = "caption_entities";
 
     @JsonProperty(TYPE_FIELD)
     private final String type = "gif"; ///< Type of the result, must be "gif"
     @JsonProperty(ID_FIELD)
+    @NonNull
     private String id; ///< Unique identifier of this result, 1-64 bytes
     @JsonProperty(GIFURL_FIELD)
+    @NonNull
     private String gifUrl; ///< A valid URL for the GIF file. File size must not exceed 1MB
     @JsonProperty(GIFWIDTH_FIELD)
     private Integer gifWidth; ///< Optional. Width of the GIF
     @JsonProperty(GIFHEIGHT_FIELD)
     private Integer gifHeight; ///< Optional. Height of the GIF
     @JsonProperty(THUMBURL_FIELD)
-    private String thumbUrl; ///< Optional. URL of a static thumbnail for the result (jpeg or gif)
+    private String thumbUrl; ///< Optional. URL of the static (JPEG or GIF) or animated (MPEG4) thumbnail for the result
+    @JsonProperty(THUMBMIMETYPE_FIELD)
+    private String thumbUrlType; ///< Optional. MIME type of the thumbnail, must be one of “image/jpeg”, “image/gif”, or “video/mp4”
     @JsonProperty(TITLE_FIELD)
     private String title; ///< Optional. Title for the result
     @JsonProperty(CAPTION_FIELD)
@@ -52,114 +83,10 @@ public class InlineQueryResultGif implements InlineQueryResult {
     @JsonProperty(GIF_DURATION_FIELD)
     private Integer gifDuration; ///< Optional. Duration of the GIF
     @JsonProperty(PARSEMODE_FIELD)
-    private String parseMode; ///< Send Markdown or HTML, if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in the media caption.
-
-    public InlineQueryResultGif() {
-        super();
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public InlineQueryResultGif setId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    public String getGifUrl() {
-        return gifUrl;
-    }
-
-    public InlineQueryResultGif setGifUrl(String gifUrl) {
-        this.gifUrl = gifUrl;
-        return this;
-    }
-
-    public Integer getGifWidth() {
-        return gifWidth;
-    }
-
-    public InlineQueryResultGif setGifWidth(Integer gifWidth) {
-        this.gifWidth = gifWidth;
-        return this;
-    }
-
-    public Integer getGifHeight() {
-        return gifHeight;
-    }
-
-    public InlineQueryResultGif setGifHeight(Integer gifHeight) {
-        this.gifHeight = gifHeight;
-        return this;
-    }
-
-    public String getThumbUrl() {
-        return thumbUrl;
-    }
-
-    public InlineQueryResultGif setThumbUrl(String thumbUrl) {
-        this.thumbUrl = thumbUrl;
-        return this;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public InlineQueryResultGif setTitle(String title) {
-        this.title = title;
-        return this;
-    }
-
-    public String getCaption() {
-        return caption;
-    }
-
-    public InlineQueryResultGif setCaption(String caption) {
-        this.caption = caption;
-        return this;
-    }
-
-    public InputMessageContent getInputMessageContent() {
-        return inputMessageContent;
-    }
-
-    public InlineQueryResultGif setInputMessageContent(InputMessageContent inputMessageContent) {
-        this.inputMessageContent = inputMessageContent;
-        return this;
-    }
-
-    public InlineKeyboardMarkup getReplyMarkup() {
-        return replyMarkup;
-    }
-
-    public InlineQueryResultGif setReplyMarkup(InlineKeyboardMarkup replyMarkup) {
-        this.replyMarkup = replyMarkup;
-        return this;
-    }
-
-    public Integer getGifDuration() {
-        return gifDuration;
-    }
-
-    public InlineQueryResultGif setGifDuration(Integer gifDuration) {
-        this.gifDuration = gifDuration;
-        return this;
-    }
-
-    public String getParseMode() {
-        return parseMode;
-    }
-
-    public InlineQueryResultGif setParseMode(String parseMode) {
-        this.parseMode = parseMode;
-        return this;
-    }
+    private String parseMode; ///< Optional. Send Markdown or HTML, if you want Telegram apps to show bold, italic, fixed-width text or inline URLs in the media caption.
+    @JsonProperty(CAPTION_ENTITIES_FIELD)
+    @Singular
+    private List<MessageEntity> captionEntities; ///< Optional. List of special entities that appear in the caption, which can be specified instead of parse_mode
 
     @Override
     public void validate() throws TelegramApiValidationException {
@@ -169,29 +96,17 @@ public class InlineQueryResultGif implements InlineQueryResult {
         if (gifUrl == null || gifUrl.isEmpty()) {
             throw new TelegramApiValidationException("GifUrl parameter can't be empty", this);
         }
+        if (thumbUrlType != null && !VALIDTHUMBTYPES.contains(thumbUrlType)) {
+            throw new TelegramApiValidationException("ThumbUrlType parameter must be one of “image/jpeg”, “image/gif”, or “video/mp4”", this);
+        }
+        if (parseMode != null && (captionEntities != null && !captionEntities.isEmpty()) ) {
+            throw new TelegramApiValidationException("Parse mode can't be enabled if Entities are provided", this);
+        }
         if (inputMessageContent != null) {
             inputMessageContent.validate();
         }
         if (replyMarkup != null) {
             replyMarkup.validate();
         }
-    }
-
-    @Override
-    public String toString() {
-        return "InlineQueryResultGif{" +
-                "type='" + type + '\'' +
-                ", id='" + id + '\'' +
-                ", gifUrl='" + gifUrl + '\'' +
-                ", gifWidth=" + gifWidth +
-                ", gifHeight=" + gifHeight +
-                ", thumbUrl='" + thumbUrl + '\'' +
-                ", title='" + title + '\'' +
-                ", caption='" + caption + '\'' +
-                ", inputMessageContent=" + inputMessageContent +
-                ", replyMarkup=" + replyMarkup +
-                ", gifDuration=" + gifDuration +
-                ", parseMode='" + parseMode + '\'' +
-                '}';
     }
 }

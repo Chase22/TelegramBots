@@ -1,10 +1,16 @@
 package org.telegram.telegrambots.meta.api.objects.polls;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.telegram.telegrambots.meta.api.interfaces.BotApiObject;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author Ruben Bermudez
@@ -12,6 +18,12 @@ import java.util.Objects;
  *
  * This object contains information about a poll.
  */
+@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class Poll implements BotApiObject {
     private static final String ID_FIELD = "id";
     private static final String QUESTION_FIELD = "question";
@@ -22,6 +34,10 @@ public class Poll implements BotApiObject {
     private static final String TYPE_FIELD = "type";
     private static final String ALLOWSMULTIPLEANSWERS_FIELD = "allows_multiple_answers";
     private static final String CORRECTOPTIONID_FIELD = "correct_option_id";
+    private static final String OPENPERIOD_FIELD = "open_period";
+    private static final String CLOSEDATE_FIELD = "close_date";
+    private static final String EXPLANATION_FIELD = "explanation";
+    private static final String EXPLANATIONENTITIES_FIELD = "explanation_entities";
 
     @JsonProperty(ID_FIELD)
     private String id; ///< Unique poll identifier
@@ -47,115 +63,12 @@ public class Poll implements BotApiObject {
      */
     @JsonProperty(CORRECTOPTIONID_FIELD)
     private Integer correctOptionId; ///< True, if the poll allows multiple answers
-
-    public Poll() {
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getQuestion() {
-        return question;
-    }
-
-    public void setQuestion(String question) {
-        this.question = question;
-    }
-
-    public List<PollOption> getOptions() {
-        return options;
-    }
-
-    public void setOptions(List<PollOption> options) {
-        this.options = options;
-    }
-
-    public Boolean getClosed() {
-        return isClosed;
-    }
-
-    public void setClosed(Boolean closed) {
-        isClosed = closed;
-    }
-
-    public Integer getTotalVoterCount() {
-        return totalVoterCount;
-    }
-
-    public void setTotalVoterCount(Integer totalVoterCount) {
-        this.totalVoterCount = totalVoterCount;
-    }
-
-    public Boolean getAnonymous() {
-        return isAnonymous;
-    }
-
-    public void setAnonymous(Boolean anonymous) {
-        isAnonymous = anonymous;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Boolean getAllowMultipleAnswers() {
-        return allowMultipleAnswers;
-    }
-
-    public void setAllowMultipleAnswers(Boolean allowMultipleAnswers) {
-        this.allowMultipleAnswers = allowMultipleAnswers;
-    }
-
-    public Integer getCorrectOptionId() {
-        return correctOptionId;
-    }
-
-    public void setCorrectOptionId(Integer correctOptionId) {
-        this.correctOptionId = correctOptionId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Poll)) return false;
-        Poll poll = (Poll) o;
-        return Objects.equals(id, poll.id) &&
-                Objects.equals(question, poll.question) &&
-                Objects.equals(options, poll.options) &&
-                Objects.equals(totalVoterCount, poll.totalVoterCount) &&
-                Objects.equals(isClosed, poll.isClosed) &&
-                Objects.equals(isAnonymous, poll.isAnonymous) &&
-                Objects.equals(type, poll.type) &&
-                Objects.equals(allowMultipleAnswers, poll.allowMultipleAnswers) &&
-                Objects.equals(correctOptionId, poll.correctOptionId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, question, options, totalVoterCount, isClosed, isAnonymous, type, allowMultipleAnswers, correctOptionId);
-    }
-
-    @Override
-    public String toString() {
-        return "Poll{" +
-                "id='" + id + '\'' +
-                ", question='" + question + '\'' +
-                ", options=" + options +
-                ", totalVoterCount=" + totalVoterCount +
-                ", isClosed=" + isClosed +
-                ", isAnonymous=" + isAnonymous +
-                ", type='" + type + '\'' +
-                ", allowMultipleAnswers=" + allowMultipleAnswers +
-                ", correctOptionId=" + correctOptionId +
-                '}';
-    }
+    @JsonProperty(OPENPERIOD_FIELD)
+    private Integer openPeriod; ///< Optional. Amount of time in seconds the poll will be active after creation
+    @JsonProperty(CLOSEDATE_FIELD)
+    private Integer closeDate; ///< Optional. Point in time (Unix timestamp) when the poll will be automatically closed
+    @JsonProperty(EXPLANATION_FIELD)
+    private String explanation; ///< Optional. Text that is shown when a user chooses an incorrect answer or taps on the lamp icon in a quiz-style poll, 0-200 characters
+    @JsonProperty(EXPLANATIONENTITIES_FIELD)
+    private List<MessageEntity> explanationEntities; ///< Optional. Special entities like usernames, URLs, bot commands, etc. that appear in the explanation
 }

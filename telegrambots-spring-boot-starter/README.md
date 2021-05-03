@@ -18,14 +18,14 @@ Usage
     <dependency>
         <groupId>org.telegram</groupId>
         <artifactId>telegrambots-spring-boot-starter</artifactId>
-        <version>4.1.2</version>
+        <version>5.2.0</version>
     </dependency>
 ```
 
 **Gradle**
 
 ```gradle
-    compile "org.telegram:telegrambots-spring-boot-starter:4.1.2"
+    implementation 'org.telegram:telegrambots-spring-boot-starter:5.2.0'
 ```
 
 Motivation
@@ -41,11 +41,8 @@ Your main spring boot class should look like this:
 @SpringBootApplication
 public class YourApplicationMainClass {
 
-	public static void main(String[] args) {
-	    //Add this line to initialize bots context
-		ApiContextInitializer.init();
-		
-		SpringApplication.run(MusicUploaderApplication.class, args);
+	public static void main(String[] args) {		
+		SpringApplication.run(YourApplicationMainClass.class, args);
 	}
 }
 ```

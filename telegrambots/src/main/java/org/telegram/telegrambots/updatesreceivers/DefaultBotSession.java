@@ -1,7 +1,6 @@
 package org.telegram.telegrambots.updatesreceivers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.Inject;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -10,22 +9,18 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
-import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.facilities.TelegramHttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.telegram.telegrambots.meta.ApiConstants;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.facilities.TelegramHttpClientBuilder;
 import org.telegram.telegrambots.meta.api.methods.updates.GetUpdates;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
-import org.telegram.telegrambots.meta.generics.BotOptions;
-import org.telegram.telegrambots.meta.generics.BotSession;
-import org.telegram.telegrambots.meta.generics.LongPollingBot;
-import org.telegram.telegrambots.meta.generics.UpdatesHandler;
-import org.telegram.telegrambots.meta.generics.UpdatesReader;
+import org.telegram.telegrambots.meta.generics.*;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
@@ -61,7 +56,6 @@ public class DefaultBotSession implements BotSession {
     private DefaultBotOptions options;
     private UpdatesSupplier updatesSupplier;
 
-    @Inject
     public DefaultBotSession() {
     }
 
@@ -144,7 +138,7 @@ public class DefaultBotSession implements BotSession {
         private final UpdatesSupplier updatesSupplier;
         private final Object lock;
         private CloseableHttpClient httpclient;
-        private ExponentialBackOff exponentialBackOff;
+        private BackOff backOff;
         private RequestConfig requestConfig;
 
         public ReaderThread(UpdatesSupplier updatesSupplier, Object lock) {
@@ -156,10 +150,11 @@ public class DefaultBotSession implements BotSession {
         public synchronized void start() {
             httpclient = TelegramHttpClientBuilder.build(options);
             requestConfig = options.getRequestConfig();
-            exponentialBackOff = options.getExponentialBackOff();
+            backOff = options.getBackOff();
 
-            if (exponentialBackOff == null) {
-                exponentialBackOff = new ExponentialBackOff();
+            // fall back to default exponential backoff strategy if no backoff specified
+            if (backOff == null) {
+                backOff = new ExponentialBackOff();
             }
 
             if (requestConfig == null) {
@@ -217,7 +212,7 @@ public class DefaultBotSession implements BotSession {
                             log.error(global.getLocalizedMessage(), global);
                             try {
                                 synchronized (lock) {
-                                    lock.wait(exponentialBackOff.nextBackOffMillis());
+                                    lock.wait(backOff.nextBackOffMillis());
                                 }
                             } catch (InterruptedException e) {
                                 if (!running.get()) {
@@ -234,10 +229,12 @@ public class DefaultBotSession implements BotSession {
         }
 
         private List<Update> getUpdatesFromServer() throws IOException {
-            GetUpdates request = new GetUpdates()
-                    .setLimit(100)
-                    .setTimeout(ApiConstants.GETUPDATES_TIMEOUT)
-                    .setOffset(lastReceivedUpdate + 1);
+            GetUpdates request = GetUpdates
+                    .builder()
+                    .limit(options.getGetUpdatesLimit())
+                    .timeout(options.getGetUpdatesTimeout())
+                    .offset(lastReceivedUpdate + 1)
+                    .build();
 
             if (options.getAllowedUpdates() != null) {
                 request.setAllowedUpdates(options.getAllowedUpdates());
@@ -261,7 +258,7 @@ public class DefaultBotSession implements BotSession {
                 } else {
                     try {
                         List<Update> updates = request.deserializeResponse(responseContent);
-                        exponentialBackOff.reset();
+                        backOff.reset();
                         return updates;
                     } catch (JSONException e) {
                         log.error("Error deserializing update: " + responseContent, e);
@@ -274,7 +271,15 @@ public class DefaultBotSession implements BotSession {
             } catch (InterruptedException e) {
                 log.info(e.getLocalizedMessage(), e);
                 interrupt();
+            } catch (InternalError e) {
+                // handle InternalError to workaround OpenJDK bug (resolved since 13.0)
+                // https://bugs.openjdk.java.net/browse/JDK-8173620
+                if (e.getCause() instanceof InvocationTargetException) {
+                    Throwable cause = e.getCause().getCause();
+                    log.error(cause.getLocalizedMessage(), cause);
+                } else throw e;
             }
+
             return Collections.emptyList();
         }
     }

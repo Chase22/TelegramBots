@@ -9,12 +9,12 @@ As with any Java project, you will need to set your dependencies.
    <dependency>
       <groupId>org.telegram</groupId>
       <artifactId>telegrambots-abilities</artifactId>
-      <version>4.6</version>
+      <version>5.2.0</version>
    </dependency>
 ```
 * **Gradle**
-```groovy
-  compile group: 'org.telegram', name: 'telegrambots-abilities', version: 'permissions'
+```gradle
+  implementation 'org.telegram:telegrambots-abilities:5.2.0'
 ```
 * [JitPack](https://jitpack.io/#rubenlagus/TelegramBots)
     
@@ -81,13 +81,10 @@ Running the bot is just like running the regular Telegram bots. Create a Java cl
 ```java
 public class Application {
     public static void main(String[] args) {
-        // Initializes dependencies necessary for the base bot - Guice
-        ApiContextInitializer.init();
-
-        // Create the TelegramBotsApi object to register your bots
-        TelegramBotsApi botsApi = new TelegramBotsApi();
-
         try {
+          // Create the TelegramBotsApi object to register your bots
+          TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+
           // Register your newly created AbilityBot
           botsApi.registerBot(new HelloBot());
         } catch (TelegramApiException e) {

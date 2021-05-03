@@ -1,6 +1,12 @@
 package org.telegram.telegrambots.meta.api.objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.telegram.telegrambots.meta.api.interfaces.BotApiObject;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.ChosenInlineQuery;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
@@ -17,6 +23,12 @@ import org.telegram.telegrambots.meta.api.objects.polls.PollAnswer;
  *
  * @apiNote Only one of the optional parameters can be present in any given update.
  */
+@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class Update implements BotApiObject {
     private static final String UPDATEID_FIELD = "update_id";
     private static final String MESSAGE_FIELD = "message";
@@ -30,6 +42,8 @@ public class Update implements BotApiObject {
     private static final String PRE_CHECKOUT_QUERY_FIELD = "pre_checkout_query";
     private static final String POLL_FIELD = "poll";
     private static final String POLLANSWER_FIELD = "poll_answer";
+    private static final String MYCHATMEMBER_FIELD = "my_chat_member";
+    private static final String CHATMEMBER_FIELD = "chat_member";
 
     @JsonProperty(UPDATEID_FIELD)
     private Integer updateId;
@@ -61,59 +75,22 @@ public class Update implements BotApiObject {
      */
     @JsonProperty(POLLANSWER_FIELD)
     private PollAnswer pollAnswer;
-
-
-    public Update() {
-        super();
-    }
-
-    public Integer getUpdateId() {
-        return updateId;
-    }
-
-    public Message getMessage() {
-        return message;
-    }
-
-    public InlineQuery getInlineQuery() {
-        return inlineQuery;
-    }
-
-    public ChosenInlineQuery getChosenInlineQuery() {
-        return chosenInlineQuery;
-    }
-
-    public CallbackQuery getCallbackQuery() {
-        return callbackQuery;
-    }
-
-    public Message getEditedMessage() {
-        return editedMessage;
-    }
-
-    public Message getChannelPost() {
-        return channelPost;
-    }
-
-    public Message getEditedChannelPost() {
-        return editedChannelPost;
-    }
-
-    public ShippingQuery getShippingQuery() {
-        return shippingQuery;
-    }
-
-    public PreCheckoutQuery getPreCheckoutQuery() {
-        return preCheckoutQuery;
-    }
-
-    public Poll getPoll() {
-        return poll;
-    }
-
-    public PollAnswer getPollAnswer() {
-        return pollAnswer;
-    }
+    /**
+     * Optional.
+     *
+     * The bot's chat member status was updated in a chat.
+     * For private chats, this update is received only when the bot is blocked or unblocked by the user.
+     */
+    @JsonProperty(MYCHATMEMBER_FIELD)
+    private ChatMemberUpdated myChatMember;
+    /**
+     * Optional.
+     *
+     * A chat member's status was updated in a chat.
+     * The bot must be an administrator in the chat and must explicitly specify “chat_member” in the list of allowed_updates to receive these updates.
+     */
+    @JsonProperty(CHATMEMBER_FIELD)
+    private ChatMemberUpdated chatMember;
 
     public boolean hasMessage() {
         return message != null;
@@ -159,21 +136,11 @@ public class Update implements BotApiObject {
         return pollAnswer != null;
     }
 
-    @Override
-    public String toString() {
-        return "Update{" +
-                "updateId=" + updateId +
-                ", message=" + message +
-                ", inlineQuery=" + inlineQuery +
-                ", chosenInlineQuery=" + chosenInlineQuery +
-                ", callbackQuery=" + callbackQuery +
-                ", editedMessage=" + editedMessage +
-                ", channelPost=" + channelPost +
-                ", editedChannelPost=" + editedChannelPost +
-                ", shippingQuery=" + shippingQuery +
-                ", preCheckoutQuery=" + preCheckoutQuery +
-                ", poll=" + poll +
-                ", pollAnswer=" + pollAnswer +
-                '}';
+    public boolean hasMyChatMember() {
+        return myChatMember != null;
+    }
+
+    public boolean hasChatMember() {
+        return chatMember != null;
     }
 }

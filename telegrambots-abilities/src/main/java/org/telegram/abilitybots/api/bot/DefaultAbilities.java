@@ -14,6 +14,7 @@ import org.telegram.abilitybots.api.util.AbilityUtils;
 import org.telegram.abilitybots.api.util.Pair;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -26,6 +27,7 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.MultimapBuilder.hashKeys;
@@ -60,7 +62,6 @@ import static org.telegram.abilitybots.api.util.AbilityMessageCodes.ABILITY_UNBA
 import static org.telegram.abilitybots.api.util.AbilityMessageCodes.ABILITY_UNBAN_SUCCESS;
 import static org.telegram.abilitybots.api.util.AbilityMessageCodes.USER_NOT_FOUND;
 import static org.telegram.abilitybots.api.util.AbilityUtils.addTag;
-import static org.telegram.abilitybots.api.util.AbilityUtils.commitTo;
 import static org.telegram.abilitybots.api.util.AbilityUtils.escape;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getLocalizedMessage;
 import static org.telegram.abilitybots.api.util.AbilityUtils.shortName;
@@ -77,6 +78,7 @@ public final class DefaultAbilities implements AbilityExtension {
   public static final String RECOVER = "recover";
   public static final String COMMANDS = "commands";
   public static final String REPORT = "report";
+  public static final String STATS = "stats";
   private static final Logger log = LoggerFactory.getLogger(DefaultAbilities.class);
   private final BaseAbilityBot bot;
 
@@ -181,6 +183,26 @@ public final class DefaultAbilities implements AbilityExtension {
   }
 
   /**
+   * @return the ability to report statistics for abilities and replies.
+   */
+  public Ability reportStats() {
+    return builder()
+        .name(STATS)
+        .locality(ALL)
+        .privacy(ADMIN)
+        .input(0)
+        .action(ctx -> {
+          String stats = bot.stats().entrySet().stream()
+              .map(entry -> String.format("%s: %d", entry.getKey(), entry.getValue().hits()))
+              .reduce(new StringJoiner("\n"), StringJoiner::add, StringJoiner::merge)
+              .toString();
+
+          bot.silent.send(stats, ctx.chatId());
+        })
+        .build();
+  }
+
+  /**
    * This backup ability returns the object defined by {@link DBContext#backup()} as a message document.
    * <p>
    * This is a high-profile ability and is restricted to the CREATOR only.
@@ -200,9 +222,10 @@ public final class DefaultAbilities implements AbilityExtension {
 
           try (PrintStream printStream = new PrintStream(backup)) {
             printStream.print(bot.db.backup());
-            bot.sender.sendDocument(new SendDocument()
-                .setDocument(backup)
-                .setChatId(ctx.chatId())
+            bot.sender.sendDocument(SendDocument.builder()
+                    .document(new InputFile(backup))
+                    .chatId(ctx.chatId().toString())
+                    .build()
             );
           } catch (FileNotFoundException e) {
             log.error("Error while fetching backup", e);
@@ -212,6 +235,7 @@ public final class DefaultAbilities implements AbilityExtension {
         })
         .build();
   }
+
 
   /**
    * Recovers the bot database using {@link DBContext#recover(Object)}.
@@ -230,7 +254,7 @@ public final class DefaultAbilities implements AbilityExtension {
         .input(0)
         .action(ctx -> bot.silent.forceReply(
             getLocalizedMessage(ABILITY_RECOVER_MESSAGE, ctx.user().getLanguageCode()), ctx.chatId()))
-        .reply(update -> {
+        .reply((bot, update) -> {
           String replyToMsg = update.getMessage().getReplyToMessage().getText();
           String recoverMessage = getLocalizedMessage(ABILITY_RECOVER_MESSAGE, AbilityUtils.getUser(update).getLanguageCode());
           if (!replyToMsg.equals(recoverMessage))
@@ -269,7 +293,7 @@ public final class DefaultAbilities implements AbilityExtension {
         .input(1)
         .action(ctx -> {
           String username = stripTag(ctx.firstArg());
-          int userId = getUserIdSendError(username, ctx);
+          long userId = getUserIdSendError(username, ctx);
           String bannedUser;
 
           // Protection from abuse
@@ -280,7 +304,7 @@ public final class DefaultAbilities implements AbilityExtension {
             bannedUser = addTag(username);
           }
 
-          Set<Integer> blacklist = bot.blacklist();
+          Set<Long> blacklist = bot.blacklist();
           if (blacklist.contains(userId))
             sendMd(ABILITY_BAN_FAIL, ctx, escape(bannedUser));
           else {
@@ -288,7 +312,6 @@ public final class DefaultAbilities implements AbilityExtension {
             sendMd(ABILITY_BAN_SUCCESS, ctx, escape(bannedUser));
           }
         })
-        .post(commitTo(bot.db))
         .build();
   }
 
@@ -305,9 +328,9 @@ public final class DefaultAbilities implements AbilityExtension {
         .input(1)
         .action(ctx -> {
           String username = stripTag(ctx.firstArg());
-          Integer userId = getUserIdSendError(username, ctx);
+          Long userId = getUserIdSendError(username, ctx);
 
-          Set<Integer> blacklist = bot.blacklist();
+          Set<Long> blacklist = bot.blacklist();
 
           if (!blacklist.remove(userId))
             bot.silent.sendMd(getLocalizedMessage(ABILITY_UNBAN_FAIL, ctx.user().getLanguageCode(), escape(username)), ctx.chatId());
@@ -315,7 +338,6 @@ public final class DefaultAbilities implements AbilityExtension {
             bot.silent.sendMd(getLocalizedMessage(ABILITY_UNBAN_SUCCESS, ctx.user().getLanguageCode(), escape(username)), ctx.chatId());
           }
         })
-        .post(commitTo(bot.db))
         .build();
   }
 
@@ -330,16 +352,16 @@ public final class DefaultAbilities implements AbilityExtension {
         .input(1)
         .action(ctx -> {
           String username = stripTag(ctx.firstArg());
-          Integer userId = getUserIdSendError(username, ctx);
+          Long userId = getUserIdSendError(username, ctx);
 
-          Set<Integer> admins = bot.admins();
+          Set<Long> admins = bot.admins();
           if (admins.contains(userId))
             sendMd(ABILITY_PROMOTE_FAIL, ctx, escape(username));
           else {
             admins.add(userId);
             sendMd(ABILITY_PROMOTE_SUCCESS, ctx, escape(username));
           }
-        }).post(commitTo(bot.db))
+        })
         .build();
   }
 
@@ -354,16 +376,15 @@ public final class DefaultAbilities implements AbilityExtension {
         .input(1)
         .action(ctx -> {
           String username = stripTag(ctx.firstArg());
-          Integer userId = getUserIdSendError(username, ctx);
+          Long userId = getUserIdSendError(username, ctx);
 
-          Set<Integer> admins = bot.admins();
+          Set<Long> admins = bot.admins();
           if (admins.remove(userId)) {
             sendMd(ABILITY_DEMOTE_SUCCESS, ctx, escape(username));
           } else {
             sendMd(ABILITY_DEMOTE_FAIL, ctx, escape(username));
           }
         })
-        .post(commitTo(bot.db))
         .build();
   }
 
@@ -379,8 +400,8 @@ public final class DefaultAbilities implements AbilityExtension {
         .privacy(CREATOR)
         .input(0)
         .action(ctx -> {
-          Set<Integer> admins = bot.admins();
-          int id = bot.creatorId();
+          Set<Long> admins = bot.admins();
+          long id = bot.creatorId();
 
           if (admins.contains(id))
             send(ABILITY_CLAIM_FAIL, ctx);
@@ -389,7 +410,6 @@ public final class DefaultAbilities implements AbilityExtension {
             send(ABILITY_CLAIM_SUCCESS, ctx);
           }
         })
-        .post(commitTo(bot.db))
         .build();
   }
 
@@ -400,7 +420,7 @@ public final class DefaultAbilities implements AbilityExtension {
    * @return the user
    */
   private User getUser(String username) {
-    Integer id = bot.userIds().get(username.toLowerCase());
+    Long id = bot.userIds().get(username.toLowerCase());
     if (id == null) {
       throw new IllegalStateException(format("Could not find ID corresponding to username [%s]", username));
     }
@@ -414,7 +434,7 @@ public final class DefaultAbilities implements AbilityExtension {
    * @param id the id of the required user
    * @return the user
    */
-  private User getUser(int id) {
+  private User getUser(long id) {
     User user = bot.users().get(id);
     if (user == null) {
       throw new IllegalStateException(format("Could not find user corresponding to id [%d]", id));
@@ -430,7 +450,7 @@ public final class DefaultAbilities implements AbilityExtension {
    * @param ctx      the message context with the originating user
    * @return the id of the user
    */
-  private int getUserIdSendError(String username, MessageContext ctx) {
+  private long getUserIdSendError(String username, MessageContext ctx) {
     try {
       return getUser(username).getId();
     } catch (IllegalStateException ex) {
@@ -454,6 +474,6 @@ public final class DefaultAbilities implements AbilityExtension {
   }
 
   protected File downloadFileWithId(String fileId) throws TelegramApiException {
-    return bot.sender.downloadFile(bot.sender.execute(new GetFile().setFileId(fileId)));
+    return bot.sender.downloadFile(bot.sender.execute(GetFile.builder().fileId(fileId).build()));
   }
 }

@@ -11,8 +11,8 @@ import static org.mockito.Mockito.when;
 import static org.telegram.abilitybots.api.objects.MessageContext.newContext;
 
 public final class TestUtils {
-  public static final User USER = new User(1, "first", false, "last", "username", null);
-  public static final User CREATOR = new User(1337, "creatorFirst", false, "creatorLast", "creatorUsername", null);
+  public static final User USER = new User(1L, "first", false, "last", "username", null, false, false, false);
+  public static final User CREATOR = new User(1337L, "creatorFirst", false, "creatorLast", "creatorUsername", null, false, false, false);
 
   private TestUtils() {
 
@@ -43,6 +43,7 @@ public final class TestUtils {
   static MessageContext mockContext(User user, long groupId, String... args) {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
+    BaseAbilityBot bot = mock(BaseAbilityBot.class);
 
     when(update.hasMessage()).thenReturn(true);
     when(update.getMessage()).thenReturn(message);
@@ -50,7 +51,7 @@ public final class TestUtils {
     when(message.getFrom()).thenReturn(user);
     when(message.hasText()).thenReturn(true);
 
-    return newContext(update, user, groupId, args);
+    return newContext(update, user, groupId, bot, args);
   }
 
   @NotNull

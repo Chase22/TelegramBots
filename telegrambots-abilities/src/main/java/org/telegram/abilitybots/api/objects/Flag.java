@@ -25,6 +25,13 @@ public enum Flag implements Predicate<Update> {
   EDITED_MESSAGE(Update::hasEditedMessage),
   INLINE_QUERY(Update::hasInlineQuery),
   CHOSEN_INLINE_QUERY(Update::hasChosenInlineQuery),
+  SHIPPING_QUERY(Update::hasShippingQuery),
+  PRECHECKOUT_QUERY(Update::hasPreCheckoutQuery),
+  POLL(Update::hasPoll),
+  POLL_ANSWER(Update::hasPollAnswer),
+  MY_CHAT_MEMBER(Update::hasMyChatMember),
+  CHAT_MEMBER(Update::hasChatMember),
+
 
   // Message Flags
   REPLY(upd -> MESSAGE.test(upd) && upd.getMessage().isReply()),
